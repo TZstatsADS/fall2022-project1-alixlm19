@@ -1,0 +1,23 @@
+---
+author: "Alix F. Leon"
+title: "Project 1: History of Philosophy"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+data_path <- "./data/philosophy_data.csv"
+```
+
+```{r}
+data <- read_csv(data_path)
+head(data)
+```
+
+```{r}
+
+```
