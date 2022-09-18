@@ -1,23 +1,103 @@
 ---
 author: "Alix F. Leon"
 title: "Project 1: History of Philosophy"
-output: html_notebook
+subtitle: "A View at Philosophy Throughout the Years"
+date: "Sep. 21, 2022"
+output: html_document
 ---
 
-```{r}
+```{r, echo = F, warning=F,message=F}
 library(tidyverse)
 library(ggplot2)
+library(sentimentr)
 ```
 
-```{r}
-data_path <- "./data/philosophy_data.csv"
+```{r, echo = F, warning=F,message=F}
+theme_set(theme_light())
+data_path <- "../data/philosophy_data.csv"
 ```
 
-```{r}
+```{r, echo = F, warning=F,message=F}
 data <- read_csv(data_path)
+data$school <- data$school %>% str_to_title() %>% str_replace("_", " ")
+```
+```{r, echo = F, warning=F,message=F}
 head(data)
 ```
 
 ```{r}
-
+data %>%
+    ggplot(aes(x = school)) +
+        geom_bar() +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+Philosophy has played a signifficant roll throughout human history. It is an
+attempt at understanding knowledge, nature, reality, values, ethics, among
+many other aspects of our lives through the use rational thought. Many of
+whom we now consider some of the greatest minds have participated in 
+philosophical reasoning, and published their ideas in an effort to immortalize
+their findings. Consequently, many other authors have published a plethora of
+philosophical ideas regarding the vast multitude of human concerns leading to
+creation of several philosophical schools of thought.
+
+This analysis will take at look at philosophical texts from 13 philosophical schools of thought. 
+The data for this analysis was extracted from the [History of philosophy][dataset_link]
+dataset. Although many sophisticated models can be used in conjunction with this data, we will use a 
+more traditional approach, using statistical analyses and plots to observe trends, and ultimately
+support the story.
+
+### Dark ages
+```{r, echo=F, message=F, fig.align='center'}
+# Number of publications over the years by school
+data %>%
+    group_by(school, original_publication_date) %>%
+    summarise(n_publications = n()) %>%
+    mutate(school = as_factor(school)) %>%
+    ggplot(
+        aes(
+            x = original_publication_date,
+            y = log10(n_publications),
+            color = school,
+        )
+    ) +
+    geom_point() +
+    labs(
+        title = "Number of publications over the years by school",
+        subtitle = str_wrap(
+            "There is a gap in text published between
+            the years 170 A.D. and 1637 A.D.",
+            width = 70),
+        x = "Original Publication Date",
+        y = "Number of Publications (log10)",
+        color = "School of Philosophy"
+    ) +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom"
+    )
+```
+
+```{r}
+# data %>%
+#     group_by(original_publication_date) %>%
+#     summarise(n_publications = n()) %>%
+#     ggplot(aes(x = original_publication_date, y = n_publications)) +
+#         geom_bar()
+```
+
+```{r}
+# Number of publications for each school
+data %>%
+    ggplot(aes(x = school)) +
+        geom_bar(position = "identity") +
+        theme(
+            axis.text.x = element_text(
+                angle = 45, hjust = 1
+            )
+        )
+```
+
+
+<!-- Links -->
+[dataset_link]: https://www.kaggle.com/datasets/kouroshalizadeh/history-of-philosophy
