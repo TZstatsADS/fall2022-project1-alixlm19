@@ -1,5 +1,5 @@
 ---
-author: "Alix F. Leon"
+author: "Alix F. Leon - afl2124"
 title: "Project 1: History of Philosophy"
 subtitle: "A View at Philosophy Throughout the Years"
 date: "Sep. 21, 2022"
@@ -9,7 +9,10 @@ output: html_document
 ```{r, echo = F, warning=F,message=F}
 library(tidyverse)
 library(ggplot2)
+library(treemapify)
+library(ggplotify)
 library(sentimentr)
+# library(d3treeR)
 ```
 
 ```{r, echo = F, warning=F,message=F}
@@ -23,13 +26,6 @@ data$school <- data$school %>% str_to_title() %>% str_replace("_", " ")
 ```
 ```{r, echo = F, warning=F, message=F, include=F}
 head(data)
-```
-
-```{r, echo=F, warning=F, message=F}
-data %>%
-    ggplot(aes(x = school)) +
-        geom_bar() +
-        theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 Philosophy has played a signifficant roll throughout human history. It is an
@@ -49,33 +45,34 @@ support the story.
 
 ## Dark ages
 ```{r, echo=F, message=F}
-publications_by_school <- data %>%
-    group_by(school, original_publication_date) %>%
-    summarise(n_publications = n()) %>%
+sentences_by_publication <- data %>%
+    group_by(title, school, author, original_publication_date) %>%
+    summarise(n_sentences = n()) %>%
     mutate(school = as_factor(school)) %>%
     arrange(original_publication_date)
 ```
 
 ```{r, echo=F, message=F, fig.align='center', fig.width=10}
-# Number of publications over the years by school
-publications_by_school %>%
+# Number of publication sentences over the years by school
+sentences_by_publication %>%
     ggplot(
         aes(
             x = original_publication_date,
-            y = log10(n_publications),
+            y = log10(n_sentences),
             color = school,
         )
     ) +
     geom_point() +
     labs(
-        title = "Number of publications over the years by school",
+        title = "Number of sentences in publications over the years by school",
         subtitle = str_wrap(
-            "There is a gap in text published between
-            the years 170 A.D. and 1637 A.D.",
+            "There is a gap in the number of
+            texts published between the years
+            170 A.D. and 1637 A.D.",
             width = 75
         ),
         x = "Original Publication Date",
-        y = "Number of Publications (log10)",
+        y = "Number of Sentences (log10)",
         color = "School of Philosophy"
     ) +
     theme(
@@ -83,16 +80,14 @@ publications_by_school %>%
     )
 ```
 
-Despite the influence of philosphy over the course of history, there have been
-some "pathches" along the way. Although the data does not represent a complete picture
+Although the data does not represent a complete picture
 of philosophical texts published throughout the years, we can see from the plot above
 that there have been several instances in which barely any texts have been published.
-Take as an example the five oldest philosophical schools of thought in our data, i.e.,
-the school of [Plato], the school of [Aristotle], the school of [stoicism], the school
-of [Rationalism], and the school of [Empiricism]. 
+Despite the influence of philosphy over the course of history, there have been
+some "pathches" along the way. 
 
 ```{r, echo = F, message=F, warning=F}
-first_and_last_publication <- publications_by_school %>%
+first_and_last_publication <- sentences_by_publication %>%
                                 group_by(school) %>%
                                 summarise(
                                     "min date" = min(original_publication_date),
@@ -113,7 +108,7 @@ difference_in_years <- tibble(
 ) %>%
 drop_na(date_difference)
 ```
-```{r, echo=F, message=F, warning=F, fig.align="center", fig.width=10}
+```{r, echo=F, message=F, warning=F, fig.align='center', fig.width=10}
 difference_in_years %>%
     ggplot(aes(x = schools, y = date_difference)) +
         geom_bar(stat = "identity") +
@@ -133,25 +128,25 @@ difference_in_years %>%
 The chart above effectively shows that there is a margin of ~500 years between publication for
 the school of Aristotle and the school of Stoicism, and more noticeably, a difference of more
 than ~1,500 years between publications from the school of Stoicism and the school of Rationalism. 
-This last time margin aligns with a time period in history denominated the [early middle ages].
+This gap aligns with a time period in history called the [early middle ages].
 During this time period, there was a signifficant reduction in the number of philosophical
 publications[¹][1].
 
-## Philosophical Publications and Most Published Authors
+## Sentence Length
 ```{r, echo=F, message=F, warning=F,}
 # Add a flag for texts published before the middle ages
 # Note: 500 was chosen arbitrarily as a nice division
 # point for pre middle ages publications and post middle
 # ages publications.
-pre_middle_ages_publications <- publications_by_school %>%
+pre_middle_ages_publications <- sentences_by_publication %>%
     mutate(pre_middle_ages = original_publication_date <= 500)
 ```
 
-```{r, echo=F, message=F, warning=F, fig.align="center", fig.width=10}
+```{r, echo=F, message=F, warning=F, fig.align='center', fig.width=10}
 
 pre_middle_ages_publications %>%
-    arrange(original_publication_date, n_publications) %>%
-    ggplot(aes(x = school, y = n_publications)) +
+    arrange(original_publication_date, n_sentences) %>%
+    ggplot(aes(x = school, y = n_sentences)) +
         geom_col(
             aes(fill = as_factor(pre_middle_ages))
         ) +
@@ -168,19 +163,69 @@ pre_middle_ages_publications %>%
             fill = "Before early ages"
         ) +
         theme(
+            legend.position = "bottom",
             axis.text.x = element_text(
                 angle = 45, hjust = 1
             )
         )
 ```
 
-Regardless of period of declined philosophical activity, there have been many texts published before
-and after this gap. For instance, the [Analytic] school and the school of [Aristotle] combined account
-for more than 100 thousand philosophical publications from 
+```{r, echo = F, message=F, warning=F, include = F}
+# Number of publications by the school of Plato and the school of Aristotle
+num_before_middle_ages <- pre_middle_ages_publications %>%
+    ungroup() %>%
+    dplyr::filter(pre_middle_ages) %>%
+    dplyr::select(n_sentences) %>%
+    sum()
 
+num_after_middle_ages <- nrow(data) - num_before_middle_ages
+
+num_before_middle_ages / nrow(data)
+```
+Philosophical texts, both during the modern age and during its beginnings, tend to be very dense.
+For instance, the works of authors before the middle ages combined account for more than
+89 thousand sentences. In other words, these publications from the 
+aforementioned schools account for roughly 24.85% of the sentences contained in the dataset.
+
+```{r, echo=F, message=F, warning=F, fig.align='center', fig.height = 7, fig.width=10}
+sentences_by_publication %>%
+    ungroup() %>%
+    ggplot(
+        mapping = aes(
+                area = n_sentences,
+                subgroup = school,
+                subgroup2 = author,
+                fill = school,
+
+    )) +
+        geom_treemap() +
+        geom_treemap_subgroup2_text(aes(label = author)) +
+        scale_x_continuous(expand = c(0, 0)) +
+        scale_y_continuous(expand = c(0, 0)) +
+        labs(
+            title = str_wrap(
+                        "Treemap of Number of Sentences per
+                        Author (Grouped By Philosophical School of Thought)",
+                        width = 75
+                    ),
+            subtitle = str_wrap(
+                        "Larger region areas correspond
+                        to a larger number of sentences",
+                        width = 75
+                    ),
+            fill = "Philosophical School of Thought"
+        ) +
+        theme(
+            legend.position = "bottom"
+        )
+```
+
+This treemap shows how different authors compare in terms of sentence length. The regions are 
+divided by their respective philosophical schools of thought
 
 ## Sentiment Analysis
 
+These publications cover a wide variety of topics; consequently, 
 ```{r}
 # Number of publications for each school
 data %>%
@@ -198,8 +243,8 @@ data %>%
 
 <!-- Links -->
 [dataset_link]: https://www.kaggle.com/datasets/kouroshalizadeh/history-of-philosophy
-[Plato]: https://en.wikipedia.org/wiki/Platonic_Academy
-[Aristotle]: https://en.wikipedia.org/wiki/Peripatetic_school
+[school of Plato]: https://en.wikipedia.org/wiki/Platonic_Academy
+[school of Aristotle]: https://en.wikipedia.org/wiki/Peripatetic_school
 [Stoicism]: https://en.wikipedia.org/wiki/Stoicism
 [Rationalism]: https://en.wikipedia.org/wiki/Rationalism
 [Empiricism]: https://en.wikipedia.org/wiki/Empiricism
