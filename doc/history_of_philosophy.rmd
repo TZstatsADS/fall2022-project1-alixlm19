@@ -21,11 +21,11 @@ data_path <- "../data/philosophy_data.csv"
 data <- read_csv(data_path)
 data$school <- data$school %>% str_to_title() %>% str_replace("_", " ")
 ```
-```{r, echo = F, warning=F,message=F}
+```{r, echo = F, warning=F, message=F, include=F}
 head(data)
 ```
 
-```{r}
+```{r, echo=F, warning=F, message=F}
 data %>%
     ggplot(aes(x = school)) +
         geom_bar() +
@@ -47,13 +47,18 @@ dataset. Although many sophisticated models can be used in conjunction with this
 more traditional approach, using statistical analyses and plots to observe trends, and ultimately
 support the story.
 
-### Dark ages
-```{r, echo=F, message=F, fig.align='center'}
-# Number of publications over the years by school
-data %>%
+## Dark ages
+```{r, echo=F, message=F}
+publications_by_school <- data %>%
     group_by(school, original_publication_date) %>%
     summarise(n_publications = n()) %>%
     mutate(school = as_factor(school)) %>%
+    arrange(original_publication_date)
+```
+
+```{r, echo=F, message=F, fig.align='center', fig.width=10}
+# Number of publications over the years by school
+publications_by_school %>%
     ggplot(
         aes(
             x = original_publication_date,
@@ -67,25 +72,67 @@ data %>%
         subtitle = str_wrap(
             "There is a gap in text published between
             the years 170 A.D. and 1637 A.D.",
-            width = 70),
+            width = 75
+        ),
         x = "Original Publication Date",
         y = "Number of Publications (log10)",
         color = "School of Philosophy"
     ) +
     theme(
-        axis.text.x = element_text(angle = 45, hjust = 1),
         legend.position = "bottom"
     )
 ```
 
-```{r}
-# data %>%
-#     group_by(original_publication_date) %>%
-#     summarise(n_publications = n()) %>%
-#     ggplot(aes(x = original_publication_date, y = n_publications)) +
-#         geom_bar()
-```
+Despite the influence of philosphy over the course of history, there have been
+some "pathches" along the way. Although the data does not represent a complete picture
+of philosophical texts published throughout the years, we can see from the plot above
+that there have been several instances in which barely any texts have been published.
+Take as an example the five oldest philosophical schools of thought in our data, i.e.,
+the school of [Plato], the school of [Aristotle], the school of [stoicism], the school
+of [Rationalism], and the school of [Empiricism]. 
 
+```{r, echo = F, message=F, warning=F}
+first_and_last_publication <- publications_by_school %>%
+                                group_by(school) %>%
+                                summarise(
+                                    "min date" = min(original_publication_date),
+                                    "max date" = max(original_publication_date)
+                                ) %>%
+                                arrange(`min date`)
+
+difference_in_years <- tibble(
+    schools = paste(
+        first_and_last_publication$school,
+        first_and_last_publication$school[2:13],
+        sep = "-"
+    ) %>% as_factor(),
+    date_difference = (
+        lead(first_and_last_publication["max date"])
+        - first_and_last_publication["min date"]
+    ) %>% unlist()
+) %>%
+drop_na(date_difference)
+```
+```{r, echo=F, message=F, warning=F, fig.align="center", fig.width=10}
+difference_in_years %>%
+    ggplot(aes(x = schools, y = date_difference)) +
+        geom_bar(stat = "identity") +
+        theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom"
+    ) +
+    labs(
+        title = "Time Elapsed Between Philosophical Schools of Thought",
+        x = paste(
+            "Contiguous Philosophical Schools",
+            "of Thought (by Original Publication Date)"
+        ),
+        y = "Difference in Years"
+    )
+```
+The chart above effectively shows that there is a margin of ~500 years between publication for
+the school of Aristotle and the school of Stoicism, and more noticeably, a difference of more
+than ~1,500 years between publications from the school of Stoicism and the school of Rationalism.
 ```{r}
 # Number of publications for each school
 data %>%
@@ -101,3 +148,8 @@ data %>%
 
 <!-- Links -->
 [dataset_link]: https://www.kaggle.com/datasets/kouroshalizadeh/history-of-philosophy
+[Plato]: https://en.wikipedia.org/wiki/Platonic_Academy
+[Aristotle]: https://en.wikipedia.org/wiki/Peripatetic_school
+[Stoicism]: https://en.wikipedia.org/wiki/Stoicism
+[Rationalism]: https://en.wikipedia.org/wiki/Rationalism
+[Empiricism]: https://en.wikipedia.org/wiki/Empiricism
