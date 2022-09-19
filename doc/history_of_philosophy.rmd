@@ -132,7 +132,55 @@ difference_in_years %>%
 ```
 The chart above effectively shows that there is a margin of ~500 years between publication for
 the school of Aristotle and the school of Stoicism, and more noticeably, a difference of more
-than ~1,500 years between publications from the school of Stoicism and the school of Rationalism.
+than ~1,500 years between publications from the school of Stoicism and the school of Rationalism. 
+This last time margin aligns with a time period in history denominated the [early middle ages].
+During this time period, there was a signifficant reduction in the number of philosophical
+publications[¹][1].
+
+## Philosophical Publications and Most Published Authors
+```{r, echo=F, message=F, warning=F,}
+# Add a flag for texts published before the middle ages
+# Note: 500 was chosen arbitrarily as a nice division
+# point for pre middle ages publications and post middle
+# ages publications.
+pre_middle_ages_publications <- publications_by_school %>%
+    mutate(pre_middle_ages = original_publication_date <= 500)
+```
+
+```{r, echo=F, message=F, warning=F, fig.align="center", fig.width=10}
+
+pre_middle_ages_publications %>%
+    arrange(original_publication_date, n_publications) %>%
+    ggplot(aes(x = school, y = n_publications)) +
+        geom_col(
+            aes(fill = as_factor(pre_middle_ages))
+        ) +
+        labs(
+            title = "Number of Publications by School of Thought",
+            subtitle = str_wrap(
+                "Each philosophical school is colored
+                according to whether a text was published
+                before or after the middle ages",
+                width = 75
+            ),
+            x = "Philosophical School of Thought",
+            y = "Number of Publications",
+            fill = "Before early ages"
+        ) +
+        theme(
+            axis.text.x = element_text(
+                angle = 45, hjust = 1
+            )
+        )
+```
+
+Regardless of period of declined philosophical activity, there have been many texts published before
+and after this gap. For instance, the [Analytic] school and the school of [Aristotle] combined account
+for more than 100 thousand philosophical publications from 
+
+
+## Sentiment Analysis
+
 ```{r}
 # Number of publications for each school
 data %>%
@@ -145,6 +193,8 @@ data %>%
         )
 ```
 
+## Sources
+[1]: #sources
 
 <!-- Links -->
 [dataset_link]: https://www.kaggle.com/datasets/kouroshalizadeh/history-of-philosophy
@@ -153,3 +203,7 @@ data %>%
 [Stoicism]: https://en.wikipedia.org/wiki/Stoicism
 [Rationalism]: https://en.wikipedia.org/wiki/Rationalism
 [Empiricism]: https://en.wikipedia.org/wiki/Empiricism
+[Analytic]: https://en.wikipedia.org/wiki/Analytic_philosophy
+[early middle ages]: https://en.wikipedia.org/wiki/Early_Middle_Ages
+
+<!-- [A companion to philosophy in the Middle Ages. Blackwell Pub.](https://books.google.com/books?id=hRJT7O-uNooC&lpg=PA1&ots=Ddy7vORhhG&dq=middle%20ages%20philosophy&lr&pg=PA1#v=onepage&q=middle%20ages%20philosophy&f=false)  -->
