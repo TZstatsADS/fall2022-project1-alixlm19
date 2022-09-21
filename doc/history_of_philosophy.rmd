@@ -10,14 +10,16 @@ output: html_document
 library(tidyverse)
 library(ggplot2)
 library(treemapify)
-library(ggplotify)
-library(sentimentr)
-# library(d3treeR)
+library(knitr)
 ```
-
+```{r setup, echo = F, warning=F, message=F}
+if (basename(getwd()) == "doc") {
+    knitr::opts_knit$set(root.dir = "..")
+}
+```
 ```{r, echo = F, warning=F,message=F}
 theme_set(theme_light())
-data_path <- "../data/philosophy_data.csv"
+data_path <- "./data/philosophy_data.csv"
 ```
 
 ```{r, echo = F, warning=F,message=F}
@@ -130,7 +132,9 @@ the school of Aristotle and the school of Stoicism, and more noticeably, a diffe
 than ~1,500 years between publications from the school of Stoicism and the school of Rationalism. 
 This gap aligns with a time period in history called the [early middle ages].
 During this time period, there was a signifficant reduction in the number of philosophical
-publications[¹][1].
+publications¹.
+
+Source: [A companion to philosophy in the Middle Ages. Blackwell Pub.](https://books.google.com/books?id=hRJT7O-uNooC&lpg=PA1&ots=Ddy7vORhhG&dq=middle%20ages%20philosophy&lr&pg=PA1#v=onepage&q=middle%20ages%20philosophy&f=false)
 
 ## Sentence Length
 ```{r, echo=F, message=F, warning=F,}
@@ -220,26 +224,20 @@ sentences_by_publication %>%
         )
 ```
 
-This treemap shows how different authors compare in terms of sentence length. The regions are 
-divided by their respective philosophical schools of thought
-
-## Sentiment Analysis
-
-These publications cover a wide variety of topics; consequently, 
 ```{r}
-# Number of publications for each school
-data %>%
-    ggplot(aes(x = school)) +
-        geom_bar(position = "identity") +
-        theme(
-            axis.text.x = element_text(
-                angle = 45, hjust = 1
-            )
-        )
+sentences_by_publication %>%
+    arrange(desc(n_sentences)) %>%
+    dplyr::select(author)
 ```
 
-## Sources
-[1]: #sources
+This treemap shows how different authors compare in terms of sentence length. The regions are 
+divided by their respective philosophical schools of thought. We can see that some of the largest 
+publications (by sentence size) were written by philosophers such as Aristotle, Plato, Lewis, Marx, etc.
+The works of these authors are some of the most influential publications in philosophical history, and 
+have made major impacts on areas outside of philosophy. For instance, _The Complete Works_ of Aristotle
+in many ways shaped the future of academia and influenced the works of many others.
+
+
 
 <!-- Links -->
 [dataset_link]: https://www.kaggle.com/datasets/kouroshalizadeh/history-of-philosophy
