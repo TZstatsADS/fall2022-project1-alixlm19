@@ -134,7 +134,7 @@ This gap aligns with a time period in history called the [early middle ages].
 During this time period, there was a signifficant reduction in the number of philosophical
 publications¹.
 
-Source: [A companion to philosophy in the Middle Ages. Blackwell Pub.](https://books.google.com/books?id=hRJT7O-uNooC&lpg=PA1&ots=Ddy7vORhhG&dq=middle%20ages%20philosophy&lr&pg=PA1#v=onepage&q=middle%20ages%20philosophy&f=false)
+**Source:** [A companion to philosophy in the Middle Ages. Blackwell Pub.](https://books.google.com/books?id=hRJT7O-uNooC&lpg=PA1&ots=Ddy7vORhhG&dq=middle%20ages%20philosophy&lr&pg=PA1#v=onepage&q=middle%20ages%20philosophy&f=false)
 
 ## Sentence Length
 ```{r, echo=F, message=F, warning=F,}
@@ -224,7 +224,7 @@ sentences_by_publication %>%
         )
 ```
 
-```{r}
+```{r, echo=F, message=F, warning=F,include=F}
 sentences_by_publication %>%
     arrange(desc(n_sentences)) %>%
     dplyr::select(author)
