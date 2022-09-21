@@ -10,11 +10,16 @@ output: html_document
 library(tidyverse)
 library(ggplot2)
 library(treemapify)
+library(sentimentr)
 library(knitr)
 ```
 ```{r setup, echo = F, warning=F, message=F}
 if (basename(getwd()) == "doc") {
-    knitr::opts_knit$set(root.dir = "..")
+    if(isTRUE(getOption('knitr.in.progress'))) {
+        knitr::opts_knit$set(root.dir = "..")
+    } else {
+        setwd("..")
+    }
 }
 ```
 ```{r, echo = F, warning=F,message=F}
@@ -237,6 +242,56 @@ The works of these authors are some of the most influential publications in phil
 have made major impacts on areas outside of philosophy. For instance, _The Complete Works_ of Aristotle
 in many ways shaped the future of academia and influenced the works of many others.
 
+```{r, echo = F, warning=F, message=F}
+
+data_with_sentiments_path <- "./output/philosophy_data_with_sentences.csv"
+
+if (!file.exists(data_with_sentiments_path)) {
+    sentiments <- data$sentence_str %>%
+        get_sentences() %>%
+        sentiment_by()
+
+    data_with_sentiments <- data %>%
+        add_column(avg_sentiment = sentiments$ave_sentiment) %>%
+        dplyr::select(
+            everything(),
+            -c(
+                sentence_spacy,
+                corpus_edition_date,
+                sentence_lowered:lemmatized_str
+            )
+        )
+    # Save the file for easy retrieval
+    write_csv(
+        data_with_sentiments,
+        data_with_sentiments_path
+    )
+} else {
+    data_with_sentiments <- read_csv(data_with_sentiments_path)
+}
+```
+## Sentiment Analysis
+```{r, echo=F, message=F, warning=F, fig.align='center', fig.height = 7, fig.width=10}
+data_with_sentiments %>%
+    ggplot(aes(avg_sentiment, fill = cut(avg_sentiment, 100))) +
+        geom_histogram(show.legend = FALSE) +
+        facet_wrap(~ school, nrow = 4) +
+        scale_fill_discrete(h = c(0, 212), c = 100, l = 80) +
+        labs(
+            title = str_wrap(
+                "Sentiment Polarity Distribution by
+                Philosophical School of Thought",
+                width = 75
+            ),
+            x = "Polarity Distribution",
+            y = "Number of Sentences"
+        )
+```
+The principles of philosophical texts are based on logical reasoning applied to different types of 
+problems. The histograms above display the distribution of the average sentiment score applied
+to the sentences for each philosophical school. We can see that each of these
+distributions is centered around 0, with the mode of each being around this neighborhood, further
+supporting our claim.
 
 
 <!-- Links -->
